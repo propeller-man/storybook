@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: your-username
+          POSTGRES_PASSWORD: your-password
+          POSTGRES_DB: your-database
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm install
+    - name: Run backend tests
+      run: |
+        cd backend
+        npm test
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm test
