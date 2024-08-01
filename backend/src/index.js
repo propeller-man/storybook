@@ -19,4 +19,4 @@ sequelize.authenticate()
 app.use('/api/auth', authRoutes);
 
 const port = process.env.PORT || 4000;
-app
+app.listen(port, () => console.log(Server running on port ${port}));
