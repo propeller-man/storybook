@@ -1,0 +1,10 @@
+{
+  "port": 4000,
+  "db": {
+    "host": "localhost",
+    "user": "your-username",
+    "password": "your-password",
+    "database": "your-database"
+  },
+  "jwtSecret": "your_jwt_secret"
+}
