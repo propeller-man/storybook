@@ -65,6 +65,8 @@ def parse_date(date_str):
 @app.route('/upload', methods=['POST'])
 def upload_and_analyze():
     try:
+        start_time = time.time()  # Запускаем таймер для подсчета времени обработки
+
         print("Step 1: Checking if file is present in the request")
         if 'file' not in request.files:
             print("Step 1: No file found in the request")
@@ -82,6 +84,7 @@ def upload_and_analyze():
         print("Step 2: Uploading file to Cloudinary")
         upload_result = cloudinary.uploader.upload(file, folder='screenshots')
         image_url = upload_result['secure_url']
+        image_path = upload_result['public_id']  # Получаем путь к файлу на Cloudinary
         print(f"Step 2: File uploaded to Cloudinary, URL: {image_url}")
 
         print("Step 3: Sending image URL to OpenAI for analysis")
@@ -137,6 +140,18 @@ def upload_and_analyze():
                 logging.error("Ошибка преобразования pace: %s", e)
                 response_data["pace"] = None
 
+        # Получаем критерии анализа и рассчитываем average_score
+        criteria_analysis = response_data.get("criteria_analysis", {})
+        total_score = sum(criteria_analysis.values())
+        average_score = total_score / 90
+
+        # Добавляем поля average_score, verified и processing_time
+        response_data["average_score"] = average_score
+        response_data["verified"] = average_score < 0.15
+        processing_time = time.time() - start_time
+        response_data["processing_time"] = round(processing_time, 2)
+        response_data["file_path"] = image_path  # Добавляем путь к файлу
+
         print("Step 6: Returning the response from OpenAI to the user")
         return jsonify({"message": "Analysis completed", "response": response_data}), 200
 
@@ -147,4 +162,3 @@ def upload_and_analyze():
 if __name__ == '__main__':
     # Запуск приложения на порту 5001
     app.run(host='0.0.0.0', port=5001, debug=True)
-
