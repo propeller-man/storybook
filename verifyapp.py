@@ -8,6 +8,7 @@ from openai import OpenAI, AssistantEventHandler
 from typing_extensions import override
 from datetime import datetime
 import time
+import logging
 
 app = Flask(__name__)
 
@@ -121,6 +122,20 @@ def upload_and_analyze():
         # Пример использования функции parse_date для преобразования даты
         if 'date' in response_data:
             response_data['timestamp'] = parse_date(response_data['date'])
+
+        # Преобразование pace в формат "MM.SSSS"
+        pace_str = response_data.get("pace")
+        if pace_str:
+            try:
+                if ":" in pace_str:
+                    minutes, seconds = map(float, pace_str.split(":"))
+                    pace = minutes + seconds / 60
+                    response_data["pace"] = f"{pace:.4f}"
+                else:
+                    response_data["pace"] = pace_str
+            except ValueError as e:
+                logging.error("Ошибка преобразования pace: %s", e)
+                response_data["pace"] = None
 
         print("Step 6: Returning the response from OpenAI to the user")
         return jsonify({"message": "Analysis completed", "response": response_data}), 200
