@@ -9,6 +9,18 @@ from typing_extensions import override
 from datetime import datetime
 import time
 import logging
+from dotenv import load_dotenv
+
+# Определение окружения
+environment = os.getenv('FLASK_ENV', 'development')
+
+# Загрузка соответствующего .env файла
+if environment == 'development':
+    load_dotenv('.env.dev')
+elif environment == 'testing':
+    load_dotenv('.env.test')
+elif environment == 'production':
+    load_dotenv('.env.prod')
 
 app = Flask(__name__)
 
@@ -16,9 +28,9 @@ app = Flask(__name__)
 locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
 # Настройки Cloudinary
-app.config['CLOUDINARY_CLOUD_NAME'] = 'drkwqb4l9'
-app.config['CLOUDINARY_API_KEY'] = '457966774888214'
-app.config['CLOUDINARY_API_SECRET'] = 'WzNoppR487-PSNdXhAzbboFIE6M'
+app.config['CLOUDINARY_CLOUD_NAME'] = os.getenv('CLOUDINARY_CLOUD_NAME')
+app.config['CLOUDINARY_API_KEY'] = os.getenv('CLOUDINARY_API_KEY')
+app.config['CLOUDINARY_API_SECRET'] = os.getenv('CLOUDINARY_API_SECRET')
 
 # Конфигурация Cloudinary
 cloudinary.config(
@@ -27,8 +39,9 @@ cloudinary.config(
     api_secret=app.config['CLOUDINARY_API_SECRET']
 )
 
-# Инициализация клиента OpenAI с указанием API-ключа напрямую
-client = OpenAI(api_key="sk-proj-yjivXgLWXQx56BTflOKIT3BlbkFJUUw6b4mrXN89MOQ0I0vs")
+# Инициализация клиента OpenAI с использованием переменной окружения
+from openai import OpenAI
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Определяем класс для обработки событий стриминга
 class EventHandler(AssistantEventHandler):
@@ -158,6 +171,10 @@ def upload_and_analyze():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/env')
+def get_env():
+    return f"Current virtual environment: {os.getenv('VIRTUAL_ENV', 'No virtual environment')}"
 
 if __name__ == '__main__':
     # Запуск приложения на порту 5001
